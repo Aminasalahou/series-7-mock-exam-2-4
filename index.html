@@ -1,1 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Series 7 Practice Exam (130 Questions)</title>
+  <style>
+    :root { --bg:#0b0f19; --card:#121a2a; --muted:#94a3b8; --text:#e5e7eb; --accent:#7c3aed; --good:#22c55e; --bad:#ef4444; --warn:#f59e0b; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); color:var(--text); }
+    header { padding:18px 16px; border-bottom:1px solid rgba(148,163,184,.2); position:sticky; top:0; background:rgba(11,15,25,.9); backdrop-filter: blur(8px); z-index:10; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+    .pill { font-size:12px; color:var(--muted); border:1px solid rgba(148,163,184,.25); padding:6px 10px; border-radius:999px; }
+    .btn { background:var(--accent); color:white; border:none; padding:10px 12px; border-radius:12px; cursor:pointer; font-weight:700; }
+    .btn.secondary { background:transparent; border:1px solid rgba(148,163,184,.25); color:var(--text); }
+    .btn:disabled { opacity:.5; cursor:not-allowed; }
+    .grid { display:grid; grid-template-columns: 1.4fr .6fr; gap:14px; }
+    @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } }
+    .card { background:var(--card); border:1px solid rgba(148,163,184,.18); border-radius:16px; padding:14px; }
+    h1 { font-size:18px; margin:0; }
+    h2 { font-size:14px; margin:0 0 10px; color:var(--muted); font-weight:600; letter-spacing:.02em; }
+    .qnum { color:var(--muted); font-size:12px; }
+    .qtext { margin:10px 0 12px; font-size:16px; line-height:1.35; }
+    .choice { display:flex; gap:10px; padding:10px 10px; border-radius:14px; border:1px solid rgba(148,163,184,.18); margin-bottom:10px; cursor:pointer; }
+    .choice:hover { border-color: rgba(124,58,237,.7); }
+    .radio { width:18px; height:18px; border-radius:999px; border:2px solid rgba(148,163,184,.45); margin-top:1px; flex:0 0 auto; }
+    .choice.selected .radio { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(124,58,237,.22) inset; }
+    .choice.correct { border-color: rgba(34,197,94,.8); }
+    .choice.incorrect { border-color: rgba(239,68,68,.8); }
+    .muted { color:var(--muted); }
+    .nav { display:flex; gap:10px; align-items:center; justify-content:space-between; margin-top:12px; }
+    .progress { height:10px; background: rgba(148,163,184,.15); border-radius:999px; overflow:hidden; }
+    .bar { height:100%; background: var(--accent); width:0%; }
+    .mini { font-size:12px; color:var(--muted); }
+    .numbers { display:grid; grid-template-columns: repeat(10, 1fr); gap:6px; }
+    .num { text-align:center; padding:8px 0; border-radius:10px; font-size:12px; cursor:pointer; border:1px solid rgba(148,163,184,.18); color:var(--muted); }
+    .num.ans { color:var(--text); border-color: rgba(124,58,237,.55); }
+    .num.cur { outline:2px solid rgba(124,58,237,.9); color:var(--text); }
+    .num.flag { border-color: rgba(245,158,11,.9); }
+    .num.done { background: rgba(34,197,94,.10); }
+    .kpi { display:flex; gap:10px; flex-wrap:wrap; }
+    .kpi .card { flex:1 1 180px; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { padding:10px 8px; border-bottom:1px solid rgba(148,163,184,.15); text-align:left; font-size:13px; }
+    th { color:var(--muted); font-weight:700; }
+    .tag { font-size:11px; padding:4px 8px; border-radius:999px; border:1px solid rgba(148,163,184,.25); color:var(--muted); }
+    .good { color: var(--good); }
+    .bad { color: var(--bad); }
+    .warn { color: var(--warn); }
+    .hidden { display:none; }
+    .small { font-size:12px; }
+    .footer-note { margin-top:10px; color:var(--muted); font-size:12px; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="row">
+      <div>
+        <h1>Series 7 Practice Exam — 130 Questions</h1>
+        <div class="mini">Exam-style practice (not a copy of FINRA’s proprietary items). Click answers → grade + section breakdown.</div>
+      </div>
+      <div class="row" style="gap:8px;">
+        <span class="pill" id="timerPill">⏱️ 0:00</span>
+        <span class="pill" id="answeredPill">Answered: 0 / 130</span>
+        <button class="btn secondary" id="flagBtn">Flag</button>
+        <button class="btn secondary" id="resetBtn">Reset</button>
+        <button class="btn" id="finishBtn">Finish & Grade</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="examView" class="grid">
+    <div class="card">
+      <div class="row">
+        <div>
+          <div class="qnum" id="qMeta">Question</div>
+          <div class="qtext" id="qText"></div>
+          <div class="muted small" id="qTopic"></div>
+        </div>
+        <span class="tag" id="flagTag" style="display:none;">Flagged</span>
+      </div>
+      <div id="choices"></div>
+
+      <div class="nav">
+        <button class="btn secondary" id="prevBtn">← Prev</button>
+        <div style="min-width:260px;">
+          <div class="progress"><div class="bar" id="bar"></div></div>
+          <div class="mini" id="progressText"></div>
+        </div>
+        <button class="btn secondary" id="nextBtn">Next →</button>
+      </div>
+
+      <div class="footer-note">
+        Tip: If you’re unsure, answer anyway (FINRA is about decision-making under pressure). Use flags for review.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Navigator</h2>
+      <div class="numbers" id="nav"></div>
+      <div style="margin-top:12px;">
+        <div class="mini">Legend: <span class="tag">Flag</span> <span class="tag">Answered</span> <span class="tag">Done</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultsView" class="hidden">
+    <div class="kpi">
+      <div class="card">
+        <h2>Score</h2>
+        <div style="font-size:34px; font-weight:900;" id="scoreBig">0%</div>
+        <div class="mini" id="scoreLine">0 / 130</div>
+      </div>
+      <div class="card">
+        <h2>Section Breakdown</h2>
+        <div id="breakdown"></div>
+      </div>
+      <div class="card">
+        <h2>Review</h2>
+        <div class="mini">Jump to any missed item.</div>
+        <button class="btn secondary" id="reviewMissedBtn" style="margin-top:10px;">Review Missed</button>
+        <button class="btn" id="backToExamBtn" style="margin-top:10px;">Back to Exam</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <h2>Missed Questions</h2>
+      <div class="mini">Shows your answer vs correct answer. (No explanations here—ask me after and I’ll teach the misses.)</div>
+      <div id="missedList" style="margin-top:10px;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/** =========================
+ *  Question Bank (130)
+ *  Topics used:
+ *  - Mechanics & Accounts
+ *  - Equity & Trading
+ *  - Options
+ *  - Bonds & Munis
+ *  - Investment Companies/Products
+ *  - Suitability & Reg/Communications
+ *  - Margin
+ *  - Retirement/Tax basics (Series 7 level)
+ *  ========================= */
+
+const QUESTIONS = [
+  // --- MECHANICS / ACCOUNTS (1-30) ---
+  {t:"Mechanics", q:"Discretion exists when an RR controls which TWO elements?", c:["Price + time","Security + price","Security + quantity","Time + commission"], a:2},
+  {t:"Mechanics", q:"Time discretion without written authority allows an RR to choose what?", c:["Security","Quantity","Only timing of execution","Buy vs sell"], a:2},
+  {t:"Mechanics", q:"A discretionary account generally must be:", c:["Cash only","Margin","Options-approved only","IRA only"], a:1},
+  {t:"Mechanics", q:"Regulation T initial margin is set by the:", c:["FINRA","Federal Reserve Board","SEC","MSRB"], a:1},
+  {t:"Mechanics", q:"Maintenance margin is set by:", c:["Federal Reserve Board","FINRA","MSRB","SIPC"], a:1},
+  {t:"Mechanics", q:"Settlement for regular-way trades of corporate securities is:", c:["T+1","T+2","T+3","Same day"], a:1},
+  {t:"Mechanics", q:"A market order guarantees:", c:["Price","Execution (if market is open)","Time of execution","No slippage"], a:1},
+  {t:"Mechanics", q:"A limit order guarantees:", c:["Execution","Price","No partial fills","Immediate trade"], a:1},
+  {t:"Mechanics", q:"An order marked AON means:", c:["Any size execution allowed","All shares must be filled at once","Only at the open","Only at the close"], a:1},
+  {t:"Mechanics", q:"A customer opens a margin account; which document is required?", c:["Options agreement","Margin agreement","Power of attorney","Form U5"], a:1},
+  {t:"Mechanics", q:"A firm must obtain a customer’s financial profile primarily for:", c:["Marketing","Suitability","Trade confirmations","SIPC coverage"], a:1},
+  {t:"Mechanics", q:"A retail communications approval requirement generally means:", c:["RR approves own materials","Principal approves prior to use","FINRA approves all ads","Customer signs ads"], a:1},
+  {t:"Mechanics", q:"A customer refuses to provide a SSN to open an account. The firm should:", c:["Reject account automatically","Open but restrict trading permanently","Open; customer may trade but firm must comply with CIP/AML","Report customer to IRS"], a:2},
+  {t:"Mechanics", q:"A customer wants to buy on margin but has not signed margin paperwork. RR should:", c:["Proceed if experienced","Proceed if credit is good","Not accept margin order until signed","Accept and get signature later"], a:2},
+  {t:"Mechanics", q:"A trade confirmation must include:", c:["RR’s opinion","Capacity (agent/principal)","Customer’s net worth","Issuer’s internal projections"], a:1},
+  {t:"Mechanics", q:"A customer places a sell stop order. It becomes a:", c:["Limit order when triggered","Market order when triggered","AON order when triggered","IOC order when triggered"], a:1},
+  {t:"Mechanics", q:"A customer’s complaint alleging mishandling must be:", c:["Handled verbally only","Forwarded to compliance/principal promptly","Deleted after resolution","Sent to FINRA same day always"], a:1},
+  {t:"Mechanics", q:"Restricted stock is typically acquired through:", c:["IPO allocation","Private placement/affiliate","Exchange purchase","Treasury auction"], a:1},
+  {t:"Mechanics", q:"Rule 144 primarily addresses sales of:", c:["Municipal bonds","Restricted/control securities","Mutual funds","ETFs"], a:1},
+  {t:"Mechanics", q:"A corporate action distributing additional shares is a:", c:["Stock split/dividend","Bond call","Tender offer","Rights offering only"], a:0},
+  {t:"Mechanics", q:"In a rights offering, rights allow existing shareholders to:", c:["Sell stock at par","Buy additional shares at subscription price","Convert bonds to stock","Exchange stock for warrants"], a:1},
+  {t:"Mechanics", q:"A warrant differs from a call option because it is:", c:["Issued by the company","Always European style","Always cash-settled","Never diluted"], a:0},
+  {t:"Mechanics", q:"A customer wants discretionary authority granted. It must be:", c:["Oral only","Written and signed by customer","Approved only by SEC","Granted only for bonds"], a:1},
+  {t:"Mechanics", q:"A prospectus is required when selling:", c:["Open-end funds at offering","Listed stock in secondary market","Treasury bills","Municipal bonds in secondary"], a:0},
+  {t:"Mechanics", q:"A breakpoint sale refers to:", c:["Bond split commissions","Mutual fund sales charge discounts at certain amounts","Options exercise pricing","ETF creation units"], a:1},
+  {t:"Mechanics", q:"A customer wishes to hold securities in street name. This helps:", c:["Avoid taxes","Facilitate transfer/settlement","Eliminate market risk","Guarantee dividends"], a:1},
+  {t:"Mechanics", q:"A cash account purchase requires payment by:", c:["T+1","T+2","Promptly (by settlement date)","Only end of month"], a:2},
+  {t:"Mechanics", q:"Free-riding occurs when a customer:", c:["Sells short in cash account","Sells securities before paying for them in cash account","Buys on margin","Uses discretion"], a:1},
+  {t:"Mechanics", q:"A customer sells a stock short. The firm must:", c:["Borrow or locate shares","Deliver cash immediately","Guarantee dividends","Eliminate Reg T deposit"], a:0},
+  {t:"Mechanics", q:"Short sale proceeds are held as:", c:["Customer cash withdrawal","Collateral in the account","Immediate profit","SIPC insurance"], a:1},
+
+  // --- EQUITY / TRADING / MARKETS (31-50) ---
+  {t:"Equity", q:"A stock quote 20.10 x 20.14 means:", c:["Bid 20.14 / Ask 20.10","Bid 20.10 / Ask 20.14","Last sale 20.10","Opening 20.14"], a:1},
+  {t:"Equity", q:"A customer places a sell limit below the market. Most likely:", c:["Executes immediately at market","Executes only if price rises","Executes only if price falls","Rejected"], a:0},
+  {t:"Equity", q:"A customer wants to protect gains on a long stock position. Best order type:", c:["Buy stop","Sell stop","Sell limit above market","Buy limit"], a:1},
+  {t:"Equity", q:"A bullish investor expects stock to rise. Most direct action:", c:["Buy stock","Short stock","Buy put","Sell call naked"], a:0},
+  {t:"Equity", q:"A secondary offering involves:", c:["New shares only","Outstanding shares only","New and/or outstanding shares sold to public","Treasury auction"], a:2},
+  {t:"Equity", q:"Primary market refers to:", c:["Exchange trading","Issuer selling to investors","OTC quotes","Short covering"], a:1},
+  {t:"Equity", q:"When interest rates rise, stock valuations often fall because:", c:["Dividends rise","Discount rate increases","EPS always drops","Volume stops"], a:1},
+  {t:"Equity", q:"A preferred stock characteristic is:", c:["Voting rights always","Fixed dividend priority","Unlimited upside","No dividend"], a:1},
+  {t:"Equity", q:"A customer wants income and higher priority than common. Most suitable:", c:["Growth stock","Preferred stock","Call option","Small-cap ETF"], a:1},
+  {t:"Equity", q:"A stock split 2-for-1 results in:", c:["Price doubles","Shares double and price halves (approx.)","Market cap doubles","Dividend eliminated"], a:1},
+  {t:"Equity", q:"A dividend paid as stock is called:", c:["Cash dividend","Stock dividend","Liquidating dividend","Special assessment"], a:1},
+  {t:"Equity", q:"A liquidating dividend indicates:", c:["Company expanding","Return of capital","Tax-free interest","Guaranteed growth"], a:1},
+  {t:"Equity", q:"A shareholder voting method giving 1 vote per share per seat is:", c:["Cumulative voting","Statutory voting","Proxy voting","Preemptive voting"], a:1},
+  {t:"Equity", q:"A shareholder right to maintain percentage ownership is:", c:["Conversion","Preemptive right","Tag-along","Sinking fund"], a:1},
+  {t:"Equity", q:"ETFs trade:", c:["Once per day at NAV","Intraday like stocks","Only via issuer","Only after close"], a:1},
+  {t:"Equity", q:"Open-end mutual funds are purchased at:", c:["Market price","NAV plus sales charge (if any)","Discount to NAV always","Bid price"], a:1},
+  {t:"Equity", q:"Closed-end funds trade:", c:["At NAV only","On exchanges at market price","Only via prospectus","At par"], a:1},
+  {t:"Equity", q:"A closed-end fund trading below NAV is at:", c:["Premium","Discount","Parity","Call value"], a:1},
+  {t:"Equity", q:"A mutual fund’s pop is:", c:["NAV","Public offering price","Bid price","Breakpoint"], a:1},
+  {t:"Equity", q:"A mutual fund’s sales charge is:", c:["POP - NAV","NAV - POP","Bid - Ask","Coupon - YTM"], a:0},
+
+  // --- BONDS & MUNIS (51-85) ---
+  {t:"Bonds/Munis", q:"Rising rates generally cause bond prices to:", c:["Rise","Fall","Stay flat","Only affect munis"], a:1},
+  {t:"Bonds/Munis", q:"A bond trading at a discount typically has:", c:["Nominal yield highest","YTM > nominal yield","YTC always highest","Current yield lowest always"], a:1},
+  {t:"Bonds/Munis", q:"A bond trading at a premium typically has:", c:["Nominal > current > YTM","YTM > current > nominal","Current > nominal > YTM","Nominal = YTM"], a:0},
+  {t:"Bonds/Munis", q:"Callable premium bond: lowest yield most likely is:", c:["Nominal yield","Current yield","Yield to maturity","Yield to call"], a:3},
+  {t:"Bonds/Munis", q:"Duration is best described as:", c:["Credit rating","Interest-rate sensitivity metric","Coupon rate","Tax status"], a:1},
+  {t:"Bonds/Munis", q:"Reinvestment risk is greatest for:", c:["Noncallable zero-coupon","Callable bonds","Short maturities","Treasury STRIPS only"], a:1},
+  {t:"Bonds/Munis", q:"Call risk is primarily:", c:["Investor benefit","Issuer benefit","Both equal","Only for zero-coupon"], a:1},
+  {t:"Bonds/Munis", q:"A put bond benefits the investor by:", c:["Allowing early sale back to issuer","Increasing coupon","Removing taxes","Guaranteeing rating"], a:0},
+  {t:"Bonds/Munis", q:"A sinking fund provision:", c:["Eliminates default risk","Requires issuer to retire bonds periodically","Guarantees call protection","Stops interest payments"], a:1},
+  {t:"Bonds/Munis", q:"T-bills are quoted on:", c:["32nds","Discount yield basis","Current yield only","Nominal yield"], a:1},
+  {t:"Bonds/Munis", q:"Treasury notes/bonds are quoted in:", c:["Decimal only","32nds of a point","Basis points only","Whole dollars"], a:1},
+  {t:"Bonds/Munis", q:"A bond quote of 105.24 equals:", c:["105.24%","105 24/32","105 24/64","105.75% always"], a:1},
+  {t:"Bonds/Munis", q:"Corporate bond interest is:", c:["Exempt federal","Taxable federal","Exempt state always","Tax-free"], a:1},
+  {t:"Bonds/Munis", q:"Municipal bond interest is generally:", c:["Taxable federal","Exempt federal","Taxable federal unless GO","Always taxable"], a:1},
+  {t:"Bonds/Munis", q:"A GO municipal bond is backed by:", c:["Project revenues only","Taxing power/full faith and credit","Tolls only","Moral pledge only"], a:1},
+  {t:"Bonds/Munis", q:"A revenue bond is backed by:", c:["Tax receipts","User fees/revenues","Full faith and credit","General fund appropriations always"], a:1},
+  {t:"Bonds/Munis", q:"A double-barreled bond has:", c:["Two revenue sources","Two maturities","Two issuers only","Two call dates always"], a:0},
+  {t:"Bonds/Munis", q:"Moral obligation bonds are weaker than GO because:", c:["No underwriting","Political not legal support","Always revenue-only","Always uninsured"], a:1},
+  {t:"Bonds/Munis", q:"Premium muni bonds are amortized to:", c:["Increase taxes","Offset excess interest received","Avoid call risk","Boost YTM"], a:1},
+  {t:"Bonds/Munis", q:"A bond’s nominal yield is:", c:["Coupon/market price","Coupon/par value","Interest after tax","Market yield"], a:1},
+  {t:"Bonds/Munis", q:"Current yield is:", c:["Coupon/market price","Coupon/par","(Par/Price)-1","Price/coupon"], a:0},
+  {t:"Bonds/Munis", q:"Credit risk is highest for:", c:["Treasuries","Investment-grade corporates","High-yield (junk) bonds","Agency bonds"], a:2},
+  {t:"Bonds/Munis", q:"A tax-equivalent yield compares:", c:["Muni yield to taxable yield","Corporate yield to Treasury","YTM to CY","YTC to YTM"], a:0},
+  {t:"Bonds/Munis", q:"If an investor is in a higher tax bracket, munis become:", c:["Less attractive","More attractive","Irrelevant","Illegal"], a:1},
+  {t:"Bonds/Munis", q:"A bond’s spread widening usually means:", c:["Price rises","Credit perception worsens","Coupon rises immediately","Duration falls"], a:1},
+  {t:"Bonds/Munis", q:"A convertible bond allows investor to:", c:["Call the bond","Convert to common stock","Convert to preferred only","Avoid taxes"], a:1},
+  {t:"Bonds/Munis", q:"Debentures are:", c:["Secured by collateral","Unsecured bonds","Municipal notes","Treasury strips"], a:1},
+  {t:"Bonds/Munis", q:"A secured bond might be backed by:", c:["Equipment mortgage","No collateral","Only taxes","Only earnings"], a:0},
+  {t:"Bonds/Munis", q:"A zero-coupon bond has:", c:["No interest; issued at discount","Floating coupon","Monthly coupon","Tax-free interest"], a:0},
+  {t:"Bonds/Munis", q:"Zero-coupon bonds have greatest:", c:["Reinvestment risk","Interest-rate risk (duration)","Call risk always","Credit enhancement"], a:1},
+  {t:"Bonds/Munis", q:"If a bond is called, the investor faces:", c:["Reinvestment risk","Inflation hedge","Tax exemption","Guaranteed profit"], a:0},
+  {t:"Bonds/Munis", q:"Municipal notes (TANs/RANs) are used for:", c:["Long-term capital","Short-term cash flow financing","Stock buybacks","Fed policy"], a:1},
+  {t:"Bonds/Munis", q:"A bond’s best mental model is:", c:["Issuer flexibility vs investor protection","Issuer always loses","Investor always wins","Coupon = safety"], a:0},
+  {t:"Bonds/Munis", q:"Common FINRA bond trap:", c:["Forgetting par value","Confusing yield measures or pledge type","Ignoring coupon dates","Always choosing Treasuries"], a:1},
+
+  // --- OPTIONS (86-115) ---
+  {t:"Options", q:"A call buyer has the right to:", c:["Sell at strike","Buy at strike","Sell at premium","Buy at market only"], a:1},
+  {t:"Options", q:"A put buyer has the right to:", c:["Buy at strike","Sell at strike","Short without margin","Avoid assignment"], a:1},
+  {t:"Options", q:"One equity option contract typically represents:", c:["10 shares","50 shares","100 shares","1,000 shares"], a:2},
+  {t:"Options", q:"A long call is bullish because:", c:["Profit if stock falls","Profit if stock rises above BE","Profit only if volatility falls","Always hedges"], a:1},
+  {t:"Options", q:"Breakeven for a long call is:", c:["Strike + premium","Strike - premium","Premium - strike","Strike only"], a:0},
+  {t:"Options", q:"Breakeven for a long put is:", c:["Strike + premium","Strike - premium","Premium + strike","Strike only"], a:1},
+  {t:"Options", q:"An option is in-the-money when:", c:["Call strike > stock","Call strike < stock (for calls)","Put strike < stock (for puts)","Always ITM near exp"], a:1},
+  {t:"Options", q:"Time value equals:", c:["Premium - intrinsic","Intrinsic - premium","Strike - stock","Coupon - YTM"], a:0},
+  {t:"Options", q:"Theta measures:", c:["Price sensitivity","Time decay","Volatility","Interest rate sensitivity"], a:1},
+  {t:"Options", q:"Theta accelerates near expiration because:", c:["Intrinsic rises","Time value collapses faster","Delta goes to zero","Premium becomes fixed"], a:1},
+  {t:"Options", q:"Delta is highest near-the-money because:", c:["Price sensitivity peaks near ATM","Gamma is zero","Vega is zero","Time value is zero"], a:0},
+  {t:"Options", q:"Options settle:", c:["T+2","T+1","T+3","Same day"], a:1},
+  {t:"Options", q:"A covered call is:", c:["Long stock + short call","Short stock + long call","Long stock + long call","Short stock + short call"], a:0},
+  {t:"Options", q:"Max gain on a covered call is:", c:["Unlimited","Strike - stock cost + premium","Premium only","Stock cost - strike"], a:1},
+  {t:"Options", q:"Protective put is:", c:["Long stock + long put","Long stock + short put","Short stock + long call","Long put + short call"], a:0},
+  {t:"Options", q:"A bull call spread is:", c:["Buy lower-strike call, sell higher-strike call","Buy higher-strike call, sell lower-strike call","Buy put and sell put","Sell two calls"], a:0},
+  {t:"Options", q:"A bear put spread is:", c:["Buy lower-strike put, sell higher-strike put","Buy higher-strike put, sell lower-strike put","Sell puts only","Buy calls only"], a:1},
+  {t:"Options", q:"Debit spreads benefit from:", c:["Widening spread","Narrowing spread","Stable stock always","Vol crush only"], a:0},
+  {t:"Options", q:"Credit spreads benefit from:", c:["Widening spread","Narrowing spread","Rising volatility always","Longer time"], a:1},
+  {t:"Options", q:"Spreads are lower risk than naked options because:", c:["Lower commissions","Defined maximum loss","No assignment risk","Always profitable"], a:1},
+  {t:"Options", q:"A long straddle is:", c:["Buy call + buy put same strike/exp","Sell call + sell put same strike/exp","Buy call + sell call","Buy put + sell put"], a:0},
+  {t:"Options", q:"A long straddle benefits most from:", c:["Low volatility","High volatility / big move","Falling rates only","Dividends"], a:1},
+  {t:"Options", q:"A short strangle is:", c:["Sell OTM call + sell OTM put","Buy OTM call + buy OTM put","Buy ATM options","Sell ATM options"], a:0},
+  {t:"Options", q:"Max loss for a short call is:", c:["Premium only","Unlimited","Strike - premium","Limited to margin"], a:1},
+  {t:"Options", q:"Max loss for a short put is:", c:["Unlimited","Strike - premium (per share) if stock to 0","Premium only","Zero"], a:1},
+  {t:"Options", q:"If assigned on a short call, the writer must:", c:["Buy stock","Deliver stock at strike","Deliver stock at market","Pay premium back"], a:1},
+  {t:"Options", q:"If assigned on a short put, the writer must:", c:["Sell stock","Buy stock at strike","Deliver stock at strike","Pay dividend"], a:1},
+  {t:"Options", q:"An investor wants income and is neutral-to-slightly-bullish. Strategy:", c:["Long call","Covered call","Long put","Long straddle"], a:1},
+  {t:"Options", q:"An investor wants downside protection on long stock. Strategy:", c:["Short call","Protective put","Naked put","Short straddle"], a:1},
+  {t:"Options", q:"A customer expects modest rise and wants defined risk. Strategy:", c:["Bull call spread","Short call","Long straddle","Short put spread"], a:0},
+
+  // --- SUITABILITY / REG / PRODUCTS / MARGIN / RETIREMENT (116-130) ---
+  {t:"Suitability", q:"FINRA focuses on recommendations because:", c:["They always profit","Advice influences behavior","Only solicited trades settle T+2","Commissions are illegal"], a:1},
+  {t:"Suitability", q:"Unsolicited trades are treated differently because:", c:["Customer assumes decision risk","No supervision applies","No records required","Always unsuitable"], a:0},
+  {t:"Suitability", q:"RRs document suitability primarily for:", c:["Marketing","Audit trail + supervision","Tax filing","Breaking confidentiality"], a:1},
+  {t:"Suitability", q:"FINRA resolves conflicts toward lower risk due to:", c:["Issuer protection","Investor protection mandate","To reduce returns","To increase fees"], a:1},
+  {t:"Suitability", q:"Concentration risk is dangerous because:", c:["Guarantees loss","Amplifies loss via lack of diversification","Eliminates liquidity always","Reduces taxes"], a:1},
+  {t:"Suitability", q:"Leveraged products are rarely suitable because:", c:["Always illiquid","Amplified losses and volatility decay","No disclosures","No trading market"], a:1},
+  {t:"Margin", q:"Reg T initial margin on a long stock purchase is:", c:["25%","50%","75%","100%"], a:1},
+  {t:"Margin", q:"Reg T deposit on a short sale is:", c:["25% of MV","50% of MV","100% of MV","150% of MV"], a:1},
+  {t:"Margin", q:"Short maintenance margin is higher primarily due to:", c:["Dividends","Unlimited upside risk","T+1 settlement","Lower liquidity"], a:1},
+  {t:"Retirement/Tax", q:"Annuities are suitable for tax deferral because:", c:["Contributions deductible always","Earnings grow tax-deferred until withdrawal","Withdrawals tax-free","No penalties"], a:1},
+  {t:"Retirement/Tax", q:"Retirees often favor bonds because:", c:["Higher growth","Income stability","Always tax-free","No interest rate risk"], a:1},
+  {t:"Retirement/Tax", q:"Young investors often tolerate equities because:", c:["Guaranteed returns","Time absorbs volatility","No drawdowns occur","Dividends never change"], a:1},
+  {t:"Products", q:"A variable annuity’s subaccounts are most similar to:", c:["CDs","Mutual funds","Treasury bills","Municipal notes"], a:1},
+  {t:"Products", q:"A REIT’s primary appeal is often:", c:["Tax-free interest","Real estate exposure + income","Guaranteed principal","No volatility"], a:1},
+  {t:"Reg", q:"A firm’s AML/CIP procedures are primarily to:", c:["Increase sales","Verify customer identity and detect suspicious activity","Reduce taxes","Avoid prospectuses"], a:1}
+];
+
+// Ensure exactly 130 questions (hard stop)
+if (QUESTIONS.length !== 130) {
+  console.warn("Question bank size:", QUESTIONS.length, "Expected 130.");
+}
+
+/** =========================
+ *  Exam Engine
+ *  ========================= */
+const stateKey = "series7_mock_130_state_v1";
+let state = {
+  idx: 0,
+  answers: Array(QUESTIONS.length).fill(null), // store choice index
+  flagged: Array(QUESTIONS.length).fill(false),
+  startedAt: null,
+  elapsedSec: 0
+};
+
+const el = (id)=>document.getElementById(id);
+const qText = el("qText");
+const qMeta = el("qMeta");
+const qTopic = el("qTopic");
+const choicesEl = el("choices");
+const navEl = el("nav");
+const barEl = el("bar");
+const progressText = el("progressText");
+const timerPill = el("timerPill");
+const answeredPill = el("answeredPill");
+const flagBtn = el("flagBtn");
+const flagTag = el("flagTag");
+
+const examView = el("examView");
+const resultsView = el("resultsView");
+const finishBtn = el("finishBtn");
+const resetBtn = el("resetBtn");
+const prevBtn = el("prevBtn");
+const nextBtn = el("nextBtn");
+const reviewMissedBtn = el("reviewMissedBtn");
+const backToExamBtn = el("backToExamBtn");
+
+let timerHandle = null;
+
+function saveState(){
+  localStorage.setItem(stateKey, JSON.stringify(state));
+}
+function loadState(){
+  const raw = localStorage.getItem(stateKey);
+  if (!raw) return;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.answers && parsed.answers.length === QUESTIONS.length) state = parsed;
+  } catch {}
+}
+function resetState(){
+  localStorage.removeItem(stateKey);
+  state = {
+    idx: 0,
+    answers: Array(QUESTIONS.length).fill(null),
+    flagged: Array(QUESTIONS.length).fill(false),
+    startedAt: null,
+    elapsedSec: 0
+  };
+  stopTimer();
+  startTimer();
+  renderNav();
+  renderQuestion();
+}
+
+function fmtTime(sec){
+  const m = Math.floor(sec/60);
+  const s = sec%60;
+  return `${m}:${String(s).padStart(2,"0")}`;
+}
+function startTimer(){
+  if (!state.startedAt) state.startedAt = Date.now();
+  if (timerHandle) return;
+  timerHandle = setInterval(()=>{
+    state.elapsedSec += 1;
+    timerPill.textContent = `⏱️ ${fmtTime(state.elapsedSec)}`;
+    saveState();
+  },1000);
+}
+function stopTimer(){
+  if (timerHandle){ clearInterval(timerHandle); timerHandle=null; }
+}
+
+function answeredCount(){
+  return state.answers.filter(v=>v!==null).length;
+}
+function updateTopPills(){
+  answeredPill.textContent = `Answered: ${answeredCount()} / ${QUESTIONS.length}`;
+  timerPill.textContent = `⏱️ ${fmtTime(state.elapsedSec)}`;
+}
+
+function renderNav(){
+  navEl.innerHTML = "";
+  for (let i=0;i<QUESTIONS.length;i++){
+    const d = document.createElement("div");
+    d.className = "num";
+    d.textContent = (i+1);
+    if (state.answers[i] !== null) d.classList.add("ans");
+    if (state.flagged[i]) d.classList.add("flag");
+    if (i === state.idx) d.classList.add("cur");
+    d.addEventListener("click", ()=>{ state.idx=i; saveState(); renderNav(); renderQuestion(); });
+    navEl.appendChild(d);
+  }
+}
+
+function renderQuestion(){
+  updateTopPills();
+
+  const i = state.idx;
+  const Q = QUESTIONS[i];
+  qMeta.textContent = `Question ${i+1} of ${QUESTIONS.length}`;
+  qText.textContent = Q.q;
+  qTopic.textContent = `Topic: ${Q.t}`;
+  flagTag.style.display = state.flagged[i] ? "inline-flex" : "none";
+
+  choicesEl.innerHTML = "";
+  Q.c.forEach((label, idx)=>{
+    const div = document.createElement("div");
+    div.className = "choice";
+    if (state.answers[i] === idx) div.classList.add("selected");
+
+    const r = document.createElement("div");
+    r.className = "radio";
+    const txt = document.createElement("div");
+    txt.innerHTML = `<div><strong>${String.fromCharCode(65+idx)}.</strong> ${label}</div>`;
+    div.appendChild(r);
+    div.appendChild(txt);
+
+    div.addEventListener("click", ()=>{
+      state.answers[i] = idx;
+      saveState();
+      renderNav();
+      renderQuestion();
+    });
+
+    choicesEl.appendChild(div);
+  });
+
+  const pct = Math.round((answeredCount()/QUESTIONS.length)*100);
+  barEl.style.width = `${pct}%`;
+  progressText.textContent = `${pct}% answered`;
+
+  prevBtn.disabled = (i===0);
+  nextBtn.disabled = (i===QUESTIONS.length-1);
+}
+
+flagBtn.addEventListener("click", ()=>{
+  const i = state.idx;
+  state.flagged[i] = !state.flagged[i];
+  saveState();
+  renderNav();
+  renderQuestion();
+});
+
+prevBtn.addEventListener("click", ()=>{
+  if (state.idx>0){ state.idx--; saveState(); renderNav(); renderQuestion(); }
+});
+nextBtn.addEventListener("click", ()=>{
+  if (state.idx<QUESTIONS.length-1){ state.idx++; saveState(); renderNav(); renderQuestion(); }
+});
+
+resetBtn.addEventListener("click", ()=>{
+  if (confirm("Reset all answers, flags, and timer?")) resetState();
+});
+
+finishBtn.addEventListener("click", ()=>{
+  gradeExam();
+});
+
+backToExamBtn.addEventListener("click", ()=>{
+  resultsView.classList.add("hidden");
+  examView.classList.remove("hidden");
+  renderNav();
+  renderQuestion();
+});
+
+reviewMissedBtn.addEventListener("click", ()=>{
+  // jump to first missed
+  for (let i=0;i<QUESTIONS.length;i++){
+    if (state.answers[i] !== QUESTIONS[i].a){
+      state.idx = i;
+      saveState();
+      resultsView.classList.add("hidden");
+      examView.classList.remove("hidden");
+      renderNav();
+      renderQuestion();
+      return;
+    }
+  }
+  alert("No missed questions to review.");
+});
+
+function gradeExam(){
+  stopTimer();
+
+  const totalsByTopic = {};
+  const correctByTopic = {};
+  let correct = 0;
+  const missed = [];
+
+  for (let i=0;i<QUESTIONS.length;i++){
+    const topic = QUESTIONS[i].t;
+    totalsByTopic[topic] = (totalsByTopic[topic]||0)+1;
+    const isCorrect = state.answers[i] === QUESTIONS[i].a;
+    if (isCorrect){
+      correct++;
+      correctByTopic[topic] = (correctByTopic[topic]||0)+1;
+    } else {
+      missed.push(i);
+    }
+  }
+
+  const pct = Math.round((correct/QUESTIONS.length)*100);
+  el("scoreBig").textContent = `${pct}%`;
+  el("scoreLine").textContent = `${correct} / ${QUESTIONS.length} correct • Time: ${fmtTime(state.elapsedSec)}`;
+
+  // breakdown
+  const bd = el("breakdown");
+  const topics = Object.keys(totalsByTopic).sort();
+  bd.innerHTML = topics.map(t=>{
+    const got = correctByTopic[t]||0;
+    const total = totalsByTopic[t];
+    const p = Math.round((got/total)*100);
+    let cls = "good";
+    if (p < 70) cls = "bad";
+    else if (p < 80) cls = "warn";
+    return `<div class="mini"><span class="${cls}" style="font-weight:800;">${p}%</span> <span class="muted">(${got}/${total})</span> — ${t}</div>`;
+  }).join("");
+
+  // missed list
+  const ml = el("missedList");
+  if (!missed.length){
+    ml.innerHTML = `<div class="mini good" style="font-weight:800;">Perfect score. That’s rare. 🔥</div>`;
+  } else {
+    ml.innerHTML = missed.map(i=>{
+      const Q = QUESTIONS[i];
+      const your = state.answers[i];
+      const yourText = (your===null) ? "No answer" : `${String.fromCharCode(65+your)}. ${Q.c[your]}`;
+      const corrText = `${String.fromCharCode(65+Q.a)}. ${Q.c[Q.a]}`;
+      return `
+        <div class="card" style="margin-top:10px;">
+          <div class="mini muted">Q${i+1} • ${Q.t}</div>
+          <div style="margin:8px 0 10px; font-weight:800;">${Q.q}</div>
+          <div class="mini"><span class="bad" style="font-weight:900;">Your answer:</span> ${yourText}</div>
+          <div class="mini"><span class="good" style="font-weight:900;">Correct:</span> ${corrText}</div>
+          <div style="margin-top:10px;">
+            <button class="btn secondary" onclick="jumpTo(${i})">Review this</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  examView.classList.add("hidden");
+  resultsView.classList.remove("hidden");
+  saveState();
+}
+
+window.jumpTo = function(i){
+  state.idx = i;
+  saveState();
+  resultsView.classList.add("hidden");
+  examView.classList.remove("hidden");
+  renderNav();
+  renderQuestion();
+};
+
+(function init(){
+  loadState();
+  startTimer();
+  renderNav();
+  renderQuestion();
+})();
+</script>
+</body>
+</html>
 
